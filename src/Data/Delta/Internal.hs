@@ -12,7 +12,8 @@
 
 {-# OPTIONS -Wall -fno-warn-orphans #-}
 module Data.Delta.Internal (
-    DeltaC (..)
+  DeltaC (..)
+, Changed (..)
 ) where
 
 import GHC.Generics
