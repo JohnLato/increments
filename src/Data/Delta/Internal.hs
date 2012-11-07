@@ -16,12 +16,93 @@ module Data.Delta.Internal (
 , Changed (..)
 ) where
 
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import Data.Int
+import Data.Word
 import GHC.Generics
 
 import Data.Beamable
 
+----------------------------------------
+-- int types
+
+instance DeltaC Integer where
+    type Delta Integer = DPrim Integer
+    delta = dprimDelta
+    applyDelta = dprimApply
+
 instance DeltaC Int where
     type Delta Int = DPrim Int
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Int8 where
+    type Delta Int8 = DPrim Int8
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Int16 where
+    type Delta Int16 = DPrim Int16
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Int32 where
+    type Delta Int32 = DPrim Int32
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Int64 where
+    type Delta Int64 = DPrim Int64
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+----------------------------------------
+-- Word types
+
+instance DeltaC Word where
+    type Delta Word = DPrim Word
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Word8 where
+    type Delta Word8 = DPrim Word8
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Word16 where
+    type Delta Word16 = DPrim Word16
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Word32 where
+    type Delta Word32 = DPrim Word32
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Word64 where
+    type Delta Word64 = DPrim Word64
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+----------------------------------------
+-- floating types
+
+instance DeltaC Float where
+    type Delta Float = DPrim Float
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+instance DeltaC Double where
+    type Delta Double = DPrim Double
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+----------------------------------------
+-- other basic, non-derived instances
+
+instance Eq x => DeltaC [x] where
+    type Delta [x] = DPrim [x]
     delta = dprimDelta
     applyDelta = dprimApply
 
@@ -30,19 +111,36 @@ instance DeltaC Char where
     delta = dprimDelta
     applyDelta = dprimApply
 
-instance Eq x => DeltaC [x] where
-    type Delta [x] = DPrim [x]
+instance DeltaC B.ByteString where
+    type Delta B.ByteString = DPrim B.ByteString
     delta = dprimDelta
     applyDelta = dprimApply
 
+instance DeltaC BL.ByteString where
+    type Delta BL.ByteString = DPrim BL.ByteString
+    delta = dprimDelta
+    applyDelta = dprimApply
+
+----------------------------------------
 -- derived instances
+
 instance DeltaC ()
+instance DeltaC Ordering
 instance DeltaC Bool
 instance (DeltaC a, Changed (Delta a)) => DeltaC (Maybe a)
 instance (DeltaC l, DeltaC r, Changed (Delta l), Changed (Delta r))
          => DeltaC (Either l r)
 
+
+----------------------------------------
+-- tuple instances
+
 instance (DeltaC l, DeltaC r, Changed (Delta l), Changed (Delta r)) => DeltaC (l,r)
+instance (DeltaC a, DeltaC b, DeltaC c, Changed (Delta a), Changed (Delta b), Changed (Delta c)) => DeltaC (a,b,c)
+instance (DeltaC a, DeltaC b, DeltaC c, DeltaC d, Changed (Delta a), Changed (Delta b), Changed (Delta c), Changed (Delta d)) => DeltaC (a,b,c,d)
+instance (DeltaC a, DeltaC b, DeltaC c, DeltaC d, DeltaC e, Changed (Delta a), Changed (Delta b), Changed (Delta c), Changed (Delta d), Changed (Delta e)) => DeltaC (a,b,c,d,e)
+instance (DeltaC a, DeltaC b, DeltaC c, DeltaC d, DeltaC e, DeltaC f, Changed (Delta a), Changed (Delta b), Changed (Delta c), Changed (Delta d), Changed (Delta e), Changed (Delta f)) => DeltaC (a,b,c,d,e,f)
+instance (DeltaC a, DeltaC b, DeltaC c, DeltaC d, DeltaC e, DeltaC f, DeltaC g, Changed (Delta a), Changed (Delta b), Changed (Delta c), Changed (Delta d), Changed (Delta e), Changed (Delta f), Changed (Delta g)) => DeltaC (a,b,c,d,e,f,g)
 
 -- ---------------------------------------------------------------------
 -- wrap primitive-ish types in DPrim, and send new values only if there's been
