@@ -14,6 +14,10 @@
 module Data.Delta.Internal (
   DeltaC (..)
 , Changed (..)
+-- * helpers for creating instances for primitive-ish types
+, DPrim (..)
+, dprimDelta
+, dprimApply
 ) where
 
 import qualified Data.ByteString as B
