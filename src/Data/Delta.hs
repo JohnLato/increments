@@ -1,5 +1,6 @@
 module Data.Delta (
-    DeltaC (..)
+  DeltaC (..)
+, Changed (..)
 ) where
 
 import Data.Delta.Internal
