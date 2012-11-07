@@ -128,6 +128,9 @@ instance DeltaC BL.ByteString where
 ----------------------------------------
 -- derived instances
 
+instance Changed () where
+    didChange _ = False
+
 instance DeltaC ()
 instance DeltaC Ordering
 instance DeltaC Bool
@@ -200,12 +203,6 @@ class DeltaC a where
 -- could use Data.Tagged, but those don't have generic instances, and Tagged
 -- has the parameters in the wrong order.
 
-data Proxy p = Proxy deriving (Show, Generic)
-
-instance Beamable (Proxy p)
-instance Changed (Proxy p) where
-    didChange _ = False
-
 newtype P2 a p = P2 a
   deriving (Show, Generic)
 
@@ -246,9 +243,6 @@ instance (Beamable (a p), Beamable (b p), Beamable (d_a p), Beamable (d_b p))
 class GChanged a where
     g_didChange :: a p -> Bool
 
-instance GChanged Proxy where
-    g_didChange _ = False
-
 instance Changed a => GChanged (P2 a) where
     g_didChange (P2 a)     = didChange a
 
@@ -273,9 +267,9 @@ class (GChanged (GDelta f)) => GDeltaC f where
     gapplyDelta :: f a -> GDelta f a -> f a
 
 instance GDeltaC U1 where
-    type GDelta U1 = Proxy
-    gdelta U1 U1 = Proxy
-    gapplyDelta U1 Proxy = U1
+    type GDelta U1 = P2 ()
+    gdelta U1 U1 = P2 ()
+    gapplyDelta U1 (P2 ()) = U1
 
 instance (GDeltaC a, GDeltaC b) => GDeltaC (a :*: b) where
     type GDelta (a :*: b) = PProd (GDelta a) (GDelta b)
