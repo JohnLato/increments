@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
@@ -50,6 +51,10 @@ instance DeltaC IntSet where
     type Delta IntSet = ([AddItem () Int],[RemItem Int])
     delta      = deltaSetLike IntSet.toList IntSet.difference
     applyDelta = applySetLike IntSet.insert IntSet.delete
+
+instance Changed ([AddItem a b],[RemItem c]) where
+    didChange ([],[]) = False
+    didChange _       = True
 
 -- TODO: make smart instances that just create a new collection if that would be
 -- more efficient.
