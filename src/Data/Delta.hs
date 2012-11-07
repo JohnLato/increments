@@ -7,6 +7,7 @@ module Data.Delta (
 , DeltaCnstr
 ) where
 
+import Data.Delta.Containers  ()
 import Data.Delta.Internal
 
 -- | A useful type constraint synonym for writing instances
