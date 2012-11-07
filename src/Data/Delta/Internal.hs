@@ -20,6 +20,7 @@ module Data.Delta.Internal (
 , dprimApply
 ) where
 
+import Control.Arrow                         (first)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Int
@@ -27,6 +28,7 @@ import Data.Word
 import GHC.Generics
 
 import Data.Beamable
+import Data.Beamable.Internal
 
 ----------------------------------------
 -- int types
@@ -343,3 +345,30 @@ instance (GDeltaC a) => GDeltaC (M1 S c a) where
     gapplyDelta (M1 a) d_a
         | g_didChange d_a  = M1 (a `gapplyDelta` d_a)
         | otherwise        = M1 a
+
+instance Beamable (U1 x) where
+    beam U1 = beam ()
+    unbeam  = first (\() -> U1) . unbeam
+    typeSignR l U1 = typeSignR l ()
+
+instance Beamable a => Beamable (K1 i a x) where
+    beam (K1 a) = beam a
+    unbeam = first K1 . unbeam
+    typeSignR l (K1 a) = typeSignR l a
+
+instance Beamable (a x) => Beamable (M1 s c a x) where
+    beam (M1 a) = beam a
+    unbeam      = first M1 . unbeam
+    typeSignR l (M1 a) = typeSignR l a
+
+instance (Beamable (a x), Beamable (b x)) => Beamable ((a :*: b) x) where
+    beam (a :*: b) = beam (a,b)
+    unbeam = first (uncurry (:*:)) . unbeam
+    typeSignR l (a :*: b) = typeSignR l (a,b)
+
+instance (Beamable (a x), Beamable (b x)) => Beamable ((a :+: b) x) where
+    beam (L1 a) = beam (Left a :: Either (a x) (b x))
+    beam (R1 b) = beam (Right b :: Either (a x) (b x))
+    unbeam = first (either L1 R1) . unbeam
+    typeSignR l (L1 a)= typeSignR l ()
+    typeSignR l (R1 a)= typeSignR l ()
