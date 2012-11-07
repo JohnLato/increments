@@ -180,7 +180,7 @@ class DeltaC a where
     -- slightly bogus, this only works because the generic param p is
     -- instantiated to ().  Tough luck if that changes...
     type Delta a = GDelta (Rep a) ()
-    -- | generate the delta between two values
+    -- | generate the delta between the 'previous' and 'current' data
     delta :: a -> a -> Delta a
     default delta :: (Generic a, GDeltaC (Rep a), GChanged (GDelta (Rep a)), Delta a ~ GDelta (Rep a) x) => a -> a -> Delta a
     delta a b = gdelta (from a) (from b)
