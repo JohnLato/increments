@@ -3,14 +3,14 @@
 {-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
-module Data.Delta.Containers (
-  deltaSetLike
+module Data.Increments.Containers (
+  changesSetLike
 , applySetLike
-, deltaMapLike
+, changesMapLike
 , applyMapLike
 ) where
 
-import Data.Delta.Internal
+import Data.Increments.Internal
 
 import Data.Beamable
 import Data.List             (foldl')
@@ -32,25 +32,25 @@ data RemItem a = RemItem a          deriving (Eq, Show, Generic)
 instance (Beamable k, Beamable a) => Beamable (AddItem k a)
 instance (Beamable a)             => Beamable (RemItem a)
 
-instance Ord k => DeltaC (Map k a) where
-    type Delta (Map k a) = ([AddItem k a],[RemItem k])
-    delta      = deltaMapLike Map.toList Map.difference
-    applyDelta = applyMapLike Map.insert Map.delete
+instance Ord k => Incremental (Map k a) where
+    type Increment (Map k a) = ([AddItem k a],[RemItem k])
+    changes      = changesMapLike Map.toList Map.difference
+    applyChanges = applyMapLike Map.insert Map.delete
 
-instance DeltaC (IntMap a) where
-    type Delta (IntMap a) = ([AddItem Int a],[RemItem Int])
-    delta      = deltaMapLike IntMap.toList IntMap.difference
-    applyDelta = applyMapLike IntMap.insert IntMap.delete
+instance Incremental (IntMap a) where
+    type Increment (IntMap a) = ([AddItem Int a],[RemItem Int])
+    changes      = changesMapLike IntMap.toList IntMap.difference
+    applyChanges = applyMapLike IntMap.insert IntMap.delete
 
-instance Ord a => DeltaC (Set a) where
-    type Delta (Set a) = ([AddItem () a],[RemItem a])
-    delta      = deltaSetLike Set.toList Set.difference
-    applyDelta = applySetLike Set.insert Set.delete
+instance Ord a => Incremental (Set a) where
+    type Increment (Set a) = ([AddItem () a],[RemItem a])
+    changes      = changesSetLike Set.toList Set.difference
+    applyChanges = applySetLike Set.insert Set.delete
 
-instance DeltaC IntSet where
-    type Delta IntSet = ([AddItem () Int],[RemItem Int])
-    delta      = deltaSetLike IntSet.toList IntSet.difference
-    applyDelta = applySetLike IntSet.insert IntSet.delete
+instance Incremental IntSet where
+    type Increment IntSet = ([AddItem () Int],[RemItem Int])
+    changes      = changesSetLike IntSet.toList IntSet.difference
+    applyChanges = applySetLike IntSet.insert IntSet.delete
 
 instance Changed ([AddItem a b],[RemItem c]) where
     didChange ([],[]) = False
@@ -58,8 +58,8 @@ instance Changed ([AddItem a b],[RemItem c]) where
 
 -- TODO: make smart instances that just create a new collection if that would be
 -- more efficient.
-deltaSetLike :: (c -> [a]) -> (c -> c -> c) -> c -> c -> ([AddItem () a],[RemItem a])
-deltaSetLike toList diffFn prev this =
+changesSetLike :: (c -> [a]) -> (c -> c -> c) -> c -> c -> ([AddItem () a],[RemItem a])
+changesSetLike toList diffFn prev this =
     let adds = map (AddItem ()) . toList $ diffFn this prev
         rems = map (RemItem)    . toList $ diffFn prev this
     in (adds,rems)
@@ -70,8 +70,8 @@ applySetLike addFn delFn cnt (adds,rems) =
     in foldl' (\acc (AddItem _ x) -> addFn x acc) cnt' adds
 
 
-deltaMapLike :: (c -> [(k,a)]) -> (c -> c -> c) -> c -> c -> ([AddItem k a],[RemItem k])
-deltaMapLike toList diffFn prev this =
+changesMapLike :: (c -> [(k,a)]) -> (c -> c -> c) -> c -> c -> ([AddItem k a],[RemItem k])
+changesMapLike toList diffFn prev this =
     let adds = map (uncurry AddItem) . toList $ diffFn this prev
         rems = map (RemItem . fst)   . toList $ diffFn prev this
     in (adds,rems)
