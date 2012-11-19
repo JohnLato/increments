@@ -224,6 +224,8 @@ data PSum a b p =
   | TRight (b p)
   deriving (Generic)
 
+deriving instance (Show (a p), Show (b p), Show (GIncrement b p), Show (GIncrement a p)) => Show (PSum a b p)
+
 instance Changed (PSum a b p) where
     didChange PSNeither = False
     didChange _ = True
