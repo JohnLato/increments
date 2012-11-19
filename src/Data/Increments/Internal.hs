@@ -316,6 +316,8 @@ instance (GIncremental a, GIncremental b) => GIncremental (a :+: b) where
 
 newtype GIncrement_K1 a p = GIncrement_K1 (Increment a) deriving Generic
 
+deriving instance (Show (Increment a)) => Show (GIncrement_K1 a p)
+
 instance (Beamable (Increment a)) => Beamable (GIncrement_K1 a p)
 
 instance Changed (Increment a) => Changed (GIncrement_K1 a p) where
