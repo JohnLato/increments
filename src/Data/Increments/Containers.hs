@@ -32,14 +32,14 @@ data RemItem a = RemItem a          deriving (Eq, Show, Generic)
 instance (Beamable k, Beamable a) => Beamable (AddItem k a)
 instance (Beamable a)             => Beamable (RemItem a)
 
-instance Ord k => Incremental (Map k a) where
+instance (Ord k, Eq a) => Incremental (Map k a) where
     type Increment (Map k a) = ([AddItem k a],[RemItem k])
-    changes      = changesMapLike Map.toList Map.difference
+    changes      = changesMapLike Map.toList
     applyChanges = applyMapLike Map.insert Map.delete
 
-instance Incremental (IntMap a) where
+instance (Eq a) => Incremental (IntMap a) where
     type Increment (IntMap a) = ([AddItem Int a],[RemItem Int])
-    changes      = changesMapLike IntMap.toList IntMap.difference
+    changes      = changesMapLike IntMap.toList
     applyChanges = applyMapLike IntMap.insert IntMap.delete
 
 instance Ord a => Incremental (Set a) where
@@ -70,11 +70,16 @@ applySetLike addFn delFn cnt (adds,rems) =
     in foldl' (\acc (AddItem _ x) -> addFn x acc) cnt' adds
 
 
-changesMapLike :: (c -> [(k,a)]) -> (c -> c -> c) -> c -> c -> ([AddItem k a],[RemItem k])
-changesMapLike toList diffFn prev this =
-    let adds = map (uncurry AddItem) . toList $ diffFn this prev
-        rems = map (RemItem . fst)   . toList $ diffFn prev this
-    in (adds,rems)
+changesMapLike :: (Ord k, Eq a) => (c -> [(k,a)]) -> c -> c -> ([AddItem k a],[RemItem k])
+changesMapLike toList prev this =
+    let proc adds rems p@((prevKey,prevVal):prevs) t@((thisKey,thisVal):these)
+          | prevKey < thisKey   = proc adds (RemItem prevKey:rems) prevs t
+          | prevKey > thisKey   = proc (AddItem thisKey thisVal:adds) rems p these
+          | prevVal /= thisVal  = proc (AddItem thisKey thisVal:adds) rems prevs these
+          | otherwise           = proc adds rems prevs these
+        proc adds rems prevs [] = (reverse adds, reverse rems ++ map (RemItem . fst) prevs)
+        proc adds rems [] these = (reverse adds ++ map (uncurry AddItem) these, reverse rems)
+    in proc [] [] (toList prev) (toList this)
 
 applyMapLike :: (k -> a -> c -> c)
              -> (k -> c -> c)
