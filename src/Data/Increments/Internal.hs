@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -14,6 +15,7 @@
 module Data.Increments.Internal (
   Incremental (..)
 , Changed (..)
+, IncrementalCnstr
 -- * helpers for creating instances for primitive-ish types
 , DPrim (..)
 , iprimDiff
@@ -199,6 +201,8 @@ class Incremental a where
     default applyChanges :: (Generic a, GIncremental (Rep a), GChanged (GIncrement (Rep a)), Increment a ~ GIncrement (Rep a) x) => a -> Increment a -> a
     applyChanges a d_a = to $ gapplyChanges (from a) d_a
 
+-- | A useful type constraint synonym for writing instances
+type IncrementalCnstr a = (Incremental a, Changed (Increment a))
 
 -- ---------------------------------------------------------------------
 -- proxy tagged types
