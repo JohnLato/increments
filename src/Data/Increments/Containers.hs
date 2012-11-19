@@ -1,5 +1,9 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
@@ -28,19 +32,24 @@ import qualified Data.Set as Set
 
 data AddItem key a = AddItem key a  deriving (Eq, Show, Generic)
 data RemItem a = RemItem a          deriving (Eq, Show, Generic)
+data ModItem key a = ModItem key (Increment a) deriving (Generic)
+
+deriving instance (Eq (Increment a), Eq key) => Eq (ModItem key a)
+deriving instance (Show (Increment a), Show key) => Show (ModItem key a)
 
 instance (Beamable k, Beamable a) => Beamable (AddItem k a)
 instance (Beamable a)             => Beamable (RemItem a)
+instance (Beamable k, Beamable (Increment a)) => Beamable (ModItem k a)
 
-instance (Ord k, Eq a) => Incremental (Map k a) where
-    type Increment (Map k a) = ([AddItem k a],[RemItem k])
+instance (Ord k, IncrementalCnstr a) => Incremental (Map k a) where
+    type Increment (Map k a) = ([AddItem k a],[RemItem k],[ModItem k a])
     changes      = changesMapLike Map.toList
-    applyChanges = applyMapLike Map.insert Map.delete
+    applyChanges = applyMapLike Map.insert Map.delete (\k diff -> Map.update (Just . (`applyChanges` diff)) k)
 
-instance (Eq a) => Incremental (IntMap a) where
-    type Increment (IntMap a) = ([AddItem Int a],[RemItem Int])
+instance (IncrementalCnstr a) => Incremental (IntMap a) where
+    type Increment (IntMap a) = ([AddItem Int a],[RemItem Int],[ModItem Int a])
     changes      = changesMapLike IntMap.toList
-    applyChanges = applyMapLike IntMap.insert IntMap.delete
+    applyChanges = applyMapLike IntMap.insert IntMap.delete (\k diff -> IntMap.update (Just . (`applyChanges` diff)) k)
 
 instance Ord a => Incremental (Set a) where
     type Increment (Set a) = ([AddItem () a],[RemItem a])
@@ -56,6 +65,10 @@ instance Changed ([AddItem a b],[RemItem c]) where
     didChange ([],[]) = False
     didChange _       = True
 
+instance Changed (Increment e) => Changed ([AddItem a b],[RemItem c], [ModItem d e]) where
+    didChange ([],[],mods) = any (\(ModItem _ diff) -> didChange diff) mods
+    didChange _          = True
+
 -- TODO: make smart instances that just create a new collection if that would be
 -- more efficient.
 changesSetLike :: (c -> [a]) -> (c -> c -> c) -> c -> c -> ([AddItem () a],[RemItem a])
@@ -70,22 +83,27 @@ applySetLike addFn delFn cnt (adds,rems) =
     in foldl' (\acc (AddItem _ x) -> addFn x acc) cnt' adds
 
 
-changesMapLike :: (Ord k, Eq a) => (c -> [(k,a)]) -> c -> c -> ([AddItem k a],[RemItem k])
+changesMapLike :: (Ord k, IncrementalCnstr a) => (c -> [(k,a)]) -> c -> c -> ([AddItem k a],[RemItem k],[ModItem k a])
 changesMapLike toList prev this =
-    let proc adds rems p@((prevKey,prevVal):prevs) t@((thisKey,thisVal):these)
-          | prevKey < thisKey   = proc adds (RemItem prevKey:rems) prevs t
-          | prevKey > thisKey   = proc (AddItem thisKey thisVal:adds) rems p these
-          | prevVal /= thisVal  = proc (AddItem thisKey thisVal:adds) rems prevs these
-          | otherwise           = proc adds rems prevs these
-        proc adds rems prevs [] = (reverse adds, reverse rems ++ map (RemItem . fst) prevs)
-        proc adds rems [] these = (reverse adds ++ map (uncurry AddItem) these, reverse rems)
-    in proc [] [] (toList prev) (toList this)
+    let proc adds rems mods p@((prevKey,prevVal):prevs) t@((thisKey,thisVal):these)
+          | prevKey < thisKey   = proc adds (RemItem prevKey:rems) mods prevs t
+          | prevKey > thisKey   = proc (AddItem thisKey thisVal:adds) rems mods p these
+          | otherwise           = let diff = changes prevVal thisVal
+                                  in if didChange diff
+                                      then proc adds rems (ModItem thisKey (changes prevVal thisVal):mods) prevs these
+                                      else proc adds rems mods prevs these
+        proc adds rems mods prevs [] = (reverse adds, reverse rems ++ map (RemItem . fst) prevs, reverse mods)
+        proc adds rems mods [] these = (reverse adds ++ map (uncurry AddItem) these, reverse rems, reverse mods)
+    in proc [] [] [] (toList prev) (toList this)
 
-applyMapLike :: (k -> a -> c -> c)
+applyMapLike :: Incremental a
+             => (k -> a -> c -> c)
              -> (k -> c -> c)
+             -> (k -> Increment a -> c -> c)
              -> c
-             -> ([AddItem k a],[RemItem k])
+             -> ([AddItem k a],[RemItem k],[ModItem k a])
              -> c
-applyMapLike addFn delFn cnt (adds,rems) =
-    let cnt'  = foldl' (\acc (RemItem k) -> delFn k acc) cnt rems
-    in foldl' (\acc (AddItem k x) -> addFn k x acc) cnt' adds
+applyMapLike addFn delFn modFn cnt (adds,rems,mods) =
+    let cntPruned = foldl' (\acc (RemItem k) -> delFn k acc) cnt rems
+        cntAdded  = foldl' (\acc (AddItem k x) -> addFn k x acc) cntPruned adds
+    in  foldl' (\acc (ModItem k diff) -> modFn k diff acc) cntAdded mods
