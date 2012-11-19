@@ -18,10 +18,32 @@ library
   exposed-modules:     Data.Increments
                       ,Data.Increments.Containers
                       ,Data.Increments.Internal
-  -- other-modules:       
+
   build-depends:       base >=4.5
                       ,ghc-prim >=0.2
                       ,beamable ==0.0.*
                       ,bytestring >= 0.9
                       ,containers >= 0.3
   hs-source-dirs:      src
+
+Test-suite increments-tests
+  Ghc-options:    -Wall
+  Hs-source-dirs: src tests
+  Main-is:        TestSuite.hs
+  Type:           exitcode-stdio-1.0
+
+  Other-modules:
+    Tests
+
+  Build-depends:
+    test-framework              >= 0.4 && < 0.7,
+    test-framework-quickcheck2  >= 0.2 && < 0.3,
+    QuickCheck                  >= 2.4 && < 2.5,
+
+    base,
+    ghc-prim,
+    beamable,
+    bytestring,
+    containers
+  hs-source-dirs:      src
+
