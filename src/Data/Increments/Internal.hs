@@ -181,7 +181,7 @@ instance Changed (DPrim a) where
 -- Main user-visible classes
 
 -- | Determine if a Increment representation contains a real change.  Unchanging
--- changess may be omitted.
+-- changes may be omitted.
 class Changed a where
     didChange :: a -> Bool
 
