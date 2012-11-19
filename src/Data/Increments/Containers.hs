@@ -30,9 +30,9 @@ import qualified Data.Map as Map
 import Data.Set              (Set)
 import qualified Data.Set as Set
 
-data AddItem key a = AddItem key a  deriving (Eq, Show, Generic)
-data RemItem a = RemItem a          deriving (Eq, Show, Generic)
-data ModItem key a = ModItem key (Increment a) deriving (Generic)
+data AddItem k a = AddItem k a             deriving (Eq, Show, Generic)
+data RemItem a   = RemItem a               deriving (Eq, Show, Generic)
+data ModItem k a = ModItem k (Increment a) deriving (Generic)
 
 deriving instance (Eq (Increment a), Eq key) => Eq (ModItem key a)
 deriving instance (Show (Increment a), Show key) => Show (ModItem key a)
