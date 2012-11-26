@@ -7,6 +7,8 @@
 {-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
+-- | 'Incremental' instances for containers, and useful functions for defining
+-- new instances.
 module Data.Increments.Containers (
   MapLikeIncrement
 , SetLikeIncrement

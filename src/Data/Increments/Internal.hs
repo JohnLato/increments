@@ -12,6 +12,23 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
 {-# OPTIONS -Wall -fno-warn-orphans #-}
+-- | Internal functions; typically unneeded by users.
+--
+-- One common case is defining certain Incremental instances.  Sometimes
+-- instead of deriving an Incremental instance you want to always send new data
+-- if it has changed.  This is easily supported with the `DPrim` type and
+-- helper functions:
+--
+-- > import Data.Increments.Internal
+-- >
+-- > instance Incremental Foo where
+-- >  type Increment Foo = DPrim Foo
+-- >  changes = iprimDiff
+-- >  applyChanges = iprimApply
+--
+-- This is especially useful with large types that do not change often, when
+-- attempting to calculate the difference may be very expensive.
+--
 module Data.Increments.Internal (
   Incremental (..)
 , Changed (..)
