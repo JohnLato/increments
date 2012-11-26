@@ -26,6 +26,7 @@ import Control.Arrow                         (first)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Int
+import Data.Monoid
 import Data.Word
 import GHC.Generics
 
@@ -176,6 +177,11 @@ instance Beamable a => Beamable (DPrim a)
 instance Changed (DPrim a) where
     didChange (DPrim _)      = True
     didChange DPrim_NoChange = False
+
+instance Monoid (DPrim a) where
+    mempty = DPrim_NoChange
+    mappend _l r@(DPrim{}) = r
+    mappend l _            = l
 
 -- ---------------------------------------------------------------------
 -- Main user-visible classes
