@@ -146,12 +146,12 @@ instance (Incremental l, Incremental r, Changed (Increment l), Changed (Incremen
 ----------------------------------------
 -- tuple instances
 
-instance (Incremental l, Incremental r, Changed (Increment l), Changed (Increment r)) => Incremental (l,r)
-instance (Incremental a, Incremental b, Incremental c, Changed (Increment a), Changed (Increment b), Changed (Increment c)) => Incremental (a,b,c)
-instance (Incremental a, Incremental b, Incremental c, Incremental d, Changed (Increment a), Changed (Increment b), Changed (Increment c), Changed (Increment d)) => Incremental (a,b,c,d)
-instance (Incremental a, Incremental b, Incremental c, Incremental d, Incremental e, Changed (Increment a), Changed (Increment b), Changed (Increment c), Changed (Increment d), Changed (Increment e)) => Incremental (a,b,c,d,e)
-instance (Incremental a, Incremental b, Incremental c, Incremental d, Incremental e, Incremental f, Changed (Increment a), Changed (Increment b), Changed (Increment c), Changed (Increment d), Changed (Increment e), Changed (Increment f)) => Incremental (a,b,c,d,e,f)
-instance (Incremental a, Incremental b, Incremental c, Incremental d, Incremental e, Incremental f, Incremental g, Changed (Increment a), Changed (Increment b), Changed (Increment c), Changed (Increment d), Changed (Increment e), Changed (Increment f), Changed (Increment g)) => Incremental (a,b,c,d,e,f,g)
+instance (IncrementalCnstr l, IncrementalCnstr r) => Incremental (l,r)
+instance (IncrementalCnstr a, IncrementalCnstr b, IncrementalCnstr c) => Incremental (a,b,c)
+instance (IncrementalCnstr a, IncrementalCnstr b, IncrementalCnstr c, IncrementalCnstr d) => Incremental (a,b,c,d)
+instance (IncrementalCnstr a, IncrementalCnstr b, IncrementalCnstr c, IncrementalCnstr d, IncrementalCnstr e) => Incremental (a,b,c,d,e)
+instance (IncrementalCnstr a, IncrementalCnstr b, IncrementalCnstr c, IncrementalCnstr d, IncrementalCnstr e, IncrementalCnstr f) => Incremental (a,b,c,d,e,f)
+instance (IncrementalCnstr a, IncrementalCnstr b, IncrementalCnstr c, IncrementalCnstr d, IncrementalCnstr e, IncrementalCnstr f, IncrementalCnstr g) => Incremental (a,b,c,d,e,f,g)
 
 -- ---------------------------------------------------------------------
 -- wrap primitive-ish types in DPrim, and send new values only if there's been
