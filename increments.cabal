@@ -4,7 +4,7 @@
 name:                increments
 version:             0.1.0.1
 synopsis:            type classes for incremental updates to data
--- description:         
+description:         incremental updates to large data structures
 license:             BSD3
 license-file:        LICENSE
 author:              John Lato <jwlato@gmail.com>
