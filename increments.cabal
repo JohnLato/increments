@@ -47,3 +47,6 @@ Test-suite increments-tests
     containers
   hs-source-dirs:      src
 
+source-repository head
+  type:                git
+  location:            git://github.com/JohnLato/increments.git
