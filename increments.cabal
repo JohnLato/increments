@@ -2,7 +2,7 @@
 --  see http://haskell.org/cabal/users-guide/
 
 name:                increments
-version:             0.1.0.2
+version:             0.1.0.3
 synopsis:            type classes for incremental updates to data
 description:         incremental updates to large data structures
 license:             BSD3
