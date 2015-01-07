@@ -2,7 +2,7 @@
 --  see http://haskell.org/cabal/users-guide/
 
 name:                increments
-version:             0.1.0.3
+version:             0.1.0.4
 synopsis:            type classes for incremental updates to data
 description:         incremental updates to large data structures
 license:             BSD3
@@ -19,7 +19,7 @@ library
                       ,Data.Increments.Containers
                       ,Data.Increments.Internal
 
-  build-depends:       base >=4.5 && < 4.8
+  build-depends:       base >=4.5 && < 4.9
                       ,ghc-prim >=0.2
                       ,beamable >= 0 && < 0.2
                       ,bytestring >= 0.9
